@@ -1,0 +1,7 @@
+{
+  "name": "Horizon Compass",
+  "description": "A high-precision, cross-platform compass application featuring smart heading insights, real-time geolocation tracking, and optimized UI for mobile and car environments.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
