@@ -14,7 +14,6 @@ import {
 import { 
   Compass, 
   Navigation, 
-  Share2, 
   MapPin, 
   Sun, 
   Moon
@@ -22,6 +21,7 @@ import {
 import { Theme } from './types';
 import { useCompass } from './hooks/useCompass';
 import CompassDisc from './components/CompassDisc';
+import WeatherSummary from './components/WeatherSummary';
 
 const App: React.FC = () => {
   const { width, height } = useWindowDimensions();
@@ -109,6 +109,11 @@ const App: React.FC = () => {
               styles.cardContainer,
               isLandscape && styles.landscapeCardContainer
             ]}>
+              <WeatherSummary 
+                latitude={location.latitude} 
+                longitude={location.longitude} 
+                isDarkMode={isDarkMode} 
+              />
               <View style={styles.card}>
                 <View style={styles.cardHeader}>
                   <MapPin size={18} color="#3b82f6" />
@@ -128,24 +133,6 @@ const App: React.FC = () => {
             </View>
           </View>
         </ScrollView>
-
-        <View style={[
-          styles.actionBar,
-          isLandscape && styles.landscapeActionBar
-        ]}>
-          <TouchableOpacity style={styles.actionItem} accessibilityLabel="Location Pin"><MapPin size={24} color={isDarkMode ? '#52525b' : '#a1a1aa'} /></TouchableOpacity>
-          <TouchableOpacity 
-            style={[
-              styles.mainAction,
-              isLandscape && styles.landscapeMainAction
-            ]} 
-            accessibilityLabel="Compass"
-            accessibilityRole="button"
-          >
-            <Compass size={28} color="white" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionItem} accessibilityLabel="Share Location"><Share2 size={24} color={isDarkMode ? '#52525b' : '#a1a1aa'} /></TouchableOpacity>
-        </View>
       </SafeAreaView>
     </View>
   );
@@ -292,49 +279,6 @@ const createStyles = (isDarkMode: boolean) => StyleSheet.create({
     fontWeight: '700',
     color: isDarkMode ? '#fff' : '#000',
     fontFamily: Platform.OS === 'web' ? 'monospace' : 'System',
-  },
-  actionBar: {
-    position: 'absolute',
-    bottom: 30,
-    left: 20,
-    right: 20,
-    height: 76,
-    backgroundColor: isDarkMode ? 'rgba(24, 24, 27, 0.98)' : 'rgba(255, 255, 255, 0.98)',
-    borderRadius: 30,
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: isDarkMode ? '#27272a' : '#f1f5f9',
-  },
-  landscapeActionBar: {
-    bottom: 15,
-    height: 60,
-  },
-  actionItem: {
-    width: 50,
-    height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  mainAction: {
-    width: 64,
-    height: 64,
-    borderRadius: 24,
-    backgroundColor: '#ef4444',
-    justifyContent: 'center',
-    alignItems: 'center',
-    transform: [{ translateY: -15 }],
-    shadowColor: '#ef4444',
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  landscapeMainAction: {
-    width: 50,
-    height: 50,
-    borderRadius: 18,
-    transform: [{ translateY: -10 }],
   },
   iconCircle: {
     width: 140,
