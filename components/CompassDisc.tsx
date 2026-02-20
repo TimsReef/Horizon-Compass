@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
 import Svg, { Circle, Line, Text as SvgText, G } from 'react-native-svg';
 
 interface CompassDiscProps {
@@ -8,11 +8,10 @@ interface CompassDiscProps {
   isDarkMode: boolean;
 }
 
-const { width } = Dimensions.get('window');
-const SIZE = width * 0.85;
-const CENTER = 200;
-
 const CompassDisc: React.FC<CompassDiscProps> = ({ heading, isDarkMode }) => {
+  const { width, height } = useWindowDimensions();
+  const SIZE = Math.min(width * 0.85, height * 0.55);
+
   const strokeColor = isDarkMode ? '#e4e4e7' : '#18181b';
   const secondaryColor = isDarkMode ? '#3f3f46' : '#a1a1aa';
   const accentColor = '#ef4444';
@@ -23,8 +22,8 @@ const CompassDisc: React.FC<CompassDiscProps> = ({ heading, isDarkMode }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.outerRing, { borderColor: isDarkMode ? '#27272a' : '#f4f4f5' }]}>
+    <View style={[styles.container, { width: SIZE, height: SIZE }]}>
+      <View style={[styles.outerRing, { borderColor: isDarkMode ? '#27272a' : '#f4f4f5', width: SIZE, height: SIZE, borderRadius: SIZE / 2 }]}>
         <Svg
           viewBox="0 0 400 400"
           style={{
@@ -93,13 +92,8 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: SIZE,
-    height: SIZE,
   },
   outerRing: {
-    width: SIZE,
-    height: SIZE,
-    borderRadius: SIZE / 2,
     borderWidth: 4,
     alignItems: 'center',
     justifyContent: 'center',

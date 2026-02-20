@@ -8,7 +8,8 @@ import {
   TouchableOpacity, 
   ScrollView, 
   StatusBar,
-  Platform
+  Platform,
+  useWindowDimensions
 } from 'react-native';
 import { 
   Compass, 
@@ -23,6 +24,8 @@ import { useCompass } from './hooks/useCompass';
 import CompassDisc from './components/CompassDisc';
 
 const App: React.FC = () => {
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
   const [theme, setTheme] = useState<Theme>(Theme.DARK);
   const { orientation, location, error, requestPermissions, permissionGranted } = useCompass();
 
@@ -73,49 +76,69 @@ const App: React.FC = () => {
         </View>
 
         <ScrollView 
-          contentContainerStyle={styles.scrollContent} 
+          contentContainerStyle={[
+            styles.scrollContent,
+            isLandscape && styles.landscapeScrollContent
+          ]} 
           showsVerticalScrollIndicator={false}
           style={styles.scrollView}
         >
-          <View style={styles.compassSection}>
-            <CompassDisc heading={orientation.heading} isDarkMode={isDarkMode} />
-            
-            <View style={styles.telemetryGrid}>
-              <View style={styles.telemetryItem}>
-                <Text style={styles.telemetryLabel}>Pitch</Text>
-                <Text style={styles.telemetryValue}>{orientation.pitch}°</Text>
-              </View>
-              <View style={styles.telemetryItem}>
-                <Text style={styles.telemetryLabel}>Roll</Text>
-                <Text style={styles.telemetryValue}>{orientation.roll}°</Text>
+          <View style={[
+            styles.mainContent,
+            isLandscape && styles.landscapeMainContent
+          ]}>
+            <View style={[
+              styles.compassSection,
+              isLandscape && styles.landscapeCompassSection
+            ]}>
+              <CompassDisc heading={orientation.heading} isDarkMode={isDarkMode} />
+              
+              <View style={styles.telemetryGrid}>
+                <View style={styles.telemetryItem}>
+                  <Text style={styles.telemetryLabel}>Pitch</Text>
+                  <Text style={styles.telemetryValue}>{orientation.pitch}°</Text>
+                </View>
+                <View style={styles.telemetryItem}>
+                  <Text style={styles.telemetryLabel}>Roll</Text>
+                  <Text style={styles.telemetryValue}>{orientation.roll}°</Text>
+                </View>
               </View>
             </View>
-          </View>
 
-          <View style={styles.cardContainer}>
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <MapPin size={18} color="#3b82f6" />
-                <Text style={styles.cardTitle}>Live Positioning</Text>
-              </View>
-              <View style={styles.statsRow}>
-                <View style={styles.stat}>
-                  <Text style={styles.statLabel}>LATITUDE</Text>
-                  <Text style={styles.statValue}>{location.latitude?.toFixed(5) || 'Searching...'}</Text>
+            <View style={[
+              styles.cardContainer,
+              isLandscape && styles.landscapeCardContainer
+            ]}>
+              <View style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <MapPin size={18} color="#3b82f6" />
+                  <Text style={styles.cardTitle}>Live Positioning</Text>
                 </View>
-                <View style={styles.stat}>
-                  <Text style={styles.statLabel}>LONGITUDE</Text>
-                  <Text style={styles.statValue}>{location.longitude?.toFixed(5) || 'Searching...'}</Text>
+                <View style={styles.statsRow}>
+                  <View style={styles.stat}>
+                    <Text style={styles.statLabel}>LATITUDE</Text>
+                    <Text style={styles.statValue}>{location.latitude?.toFixed(5) || 'Searching...'}</Text>
+                  </View>
+                  <View style={styles.stat}>
+                    <Text style={styles.statLabel}>LONGITUDE</Text>
+                    <Text style={styles.statValue}>{location.longitude?.toFixed(5) || 'Searching...'}</Text>
+                  </View>
                 </View>
               </View>
             </View>
           </View>
         </ScrollView>
 
-        <View style={styles.actionBar}>
+        <View style={[
+          styles.actionBar,
+          isLandscape && styles.landscapeActionBar
+        ]}>
           <TouchableOpacity style={styles.actionItem} accessibilityLabel="Location Pin"><MapPin size={24} color={isDarkMode ? '#52525b' : '#a1a1aa'} /></TouchableOpacity>
           <TouchableOpacity 
-            style={styles.mainAction} 
+            style={[
+              styles.mainAction,
+              isLandscape && styles.landscapeMainAction
+            ]} 
             accessibilityLabel="Compass"
             accessibilityRole="button"
           >
@@ -147,6 +170,17 @@ const createStyles = (isDarkMode: boolean) => StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 150,
+  },
+  landscapeScrollContent: {
+    paddingBottom: 100,
+  },
+  mainContent: {
+    flex: 1,
+  },
+  landscapeMainContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
   },
   topBar: {
     flexDirection: 'row',
@@ -183,6 +217,10 @@ const createStyles = (isDarkMode: boolean) => StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 20,
   },
+  landscapeCompassSection: {
+    flex: 1,
+    paddingVertical: 0,
+  },
   telemetryGrid: {
     flexDirection: 'row',
     marginTop: 20,
@@ -211,6 +249,11 @@ const createStyles = (isDarkMode: boolean) => StyleSheet.create({
   cardContainer: {
     padding: 20,
     gap: 16,
+  },
+  landscapeCardContainer: {
+    flex: 1,
+    padding: 0,
+    justifyContent: 'center',
   },
   card: {
     backgroundColor: isDarkMode ? '#18181b' : '#ffffff',
@@ -264,6 +307,10 @@ const createStyles = (isDarkMode: boolean) => StyleSheet.create({
     borderWidth: 1,
     borderColor: isDarkMode ? '#27272a' : '#f1f5f9',
   },
+  landscapeActionBar: {
+    bottom: 15,
+    height: 60,
+  },
   actionItem: {
     width: 50,
     height: 50,
@@ -282,6 +329,12 @@ const createStyles = (isDarkMode: boolean) => StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 5,
+  },
+  landscapeMainAction: {
+    width: 50,
+    height: 50,
+    borderRadius: 18,
+    transform: [{ translateY: -10 }],
   },
   iconCircle: {
     width: 140,
