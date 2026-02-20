@@ -1,22 +1,31 @@
+
 {
-  "name": "horizon-compass",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "name": "horizon-compass-pro",
+  "version": "1.0.0",
+  "main": "index.tsx",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
   },
   "dependencies": {
+    "expo": "~54.0.33",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-native": "0.81.5",
+    "expo-sensors": "~15.0.0",
+    "expo-location": "~19.0.0",
+    "lucide-react-native": "0.575.0",
+    "react-native-svg": "^15.12.1",
     "@google/genai": "^1.41.0",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-native-web": "~0.21.0"
+
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
-    "@vitejs/plugin-react": "^5.0.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
-  }
+    "@babel/core": "^7.25.2",
+    "@types/react": "~19.1.0",
+    "typescript": "^5.9.2"
+  },
+  "private": true
 }

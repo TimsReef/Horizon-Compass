@@ -1,7 +1,8 @@
 {
-  "name": "Horizon Compass",
-  "description": "A high-precision, cross-platform compass application featuring smart heading insights, real-time geolocation tracking, and optimized UI for mobile and car environments.",
+  "name": "Horizon Compass Pro",
+  "description": "Professional-grade cross-platform compass built with Expo and Gemini AI.",
   "requestFramePermissions": [
-    "geolocation"
+    "geolocation",
+    "camera"
   ]
 }
