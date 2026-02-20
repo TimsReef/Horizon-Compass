@@ -8,60 +8,26 @@ import {
   TouchableOpacity, 
   ScrollView, 
   StatusBar,
-  Platform,
-  ActivityIndicator,
-  Linking
+  Platform
 } from 'react-native';
 import { 
   Compass, 
   Navigation, 
   Share2, 
-  Info, 
   MapPin, 
   Sun, 
-  Moon, 
-  RotateCcw,
-  ExternalLink
+  Moon
 } from 'lucide-react-native';
 import { Theme } from './types';
 import { useCompass } from './hooks/useCompass';
 import CompassDisc from './components/CompassDisc';
-import { getHeadingInsight, EnhancedInsightData } from './services/geminiService';
 
 const App: React.FC = () => {
   const [theme, setTheme] = useState<Theme>(Theme.DARK);
   const { orientation, location, error, requestPermissions, permissionGranted } = useCompass();
-  const [insight, setInsight] = useState<EnhancedInsightData | null>(null);
-  const [isInsightLoading, setIsInsightLoading] = useState(false);
-  const [lastInsightHeading, setLastInsightHeading] = useState(-1);
 
   const isDarkMode = theme === Theme.DARK;
   const styles = createStyles(isDarkMode);
-
-  const fetchInsight = useCallback(async () => {
-    if (isInsightLoading) return;
-    setIsInsightLoading(true);
-    try {
-      const data = await getHeadingInsight(orientation.heading, location.latitude, location.longitude);
-      setInsight(data);
-      setLastInsightHeading(orientation.heading);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsInsightLoading(false);
-    }
-  }, [orientation.heading, location.latitude, location.longitude, isInsightLoading]);
-
-  useEffect(() => {
-    if (Math.abs(orientation.heading - lastInsightHeading) > 30 && permissionGranted) {
-      const timer = setTimeout(fetchInsight, 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [orientation.heading, lastInsightHeading, permissionGranted, fetchInsight]);
-
-  const openSource = (url: string) => {
-    Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
-  };
 
   if (!permissionGranted) {
     return (
@@ -143,44 +109,6 @@ const App: React.FC = () => {
                 </View>
               </View>
             </View>
-
-            <View style={[styles.card, styles.insightCard]}>
-              <View style={styles.cardHeader}>
-                <Info size={18} color="#10b981" />
-                <Text style={styles.cardTitle}>Smart Insights</Text>
-                {isInsightLoading && <ActivityIndicator size="small" color="#ef4444" style={{ marginLeft: 'auto' }} />}
-              </View>
-              {insight ? (
-                <View>
-                  <Text style={styles.insightHeading}>{insight.headingName}</Text>
-                  <Text style={styles.insightText}>{insight.description}</Text>
-                  
-                  {insight.sources && insight.sources.length > 0 && (
-                    <View style={styles.sourcesContainer}>
-                      <Text style={styles.sourcesLabel}>Sources:</Text>
-                      {insight.sources.map((source, index) => (
-                        <TouchableOpacity 
-                          key={index} 
-                          onPress={() => openSource(source.uri)}
-                          style={styles.sourceItem}
-                        >
-                          <ExternalLink size={12} color="#3b82f6" />
-                          <Text style={styles.sourceText} numberOfLines={1}>{source.title || source.uri}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              ) : (
-                <View style={styles.emptyInsight}>
-                  <Text style={styles.loadingText}>Align your phone to get AI location tips.</Text>
-                  <TouchableOpacity onPress={fetchInsight} style={styles.refreshButton}>
-                    <RotateCcw size={14} color="#71717a" />
-                    <Text style={styles.refreshButtonText}>Analyze Surroundings</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
           </View>
         </ScrollView>
 
@@ -188,8 +116,7 @@ const App: React.FC = () => {
           <TouchableOpacity style={styles.actionItem} accessibilityLabel="Location Pin"><MapPin size={24} color={isDarkMode ? '#52525b' : '#a1a1aa'} /></TouchableOpacity>
           <TouchableOpacity 
             style={styles.mainAction} 
-            onPress={fetchInsight}
-            accessibilityLabel="Refresh AI Insights"
+            accessibilityLabel="Compass"
             accessibilityRole="button"
           >
             <Compass size={28} color="white" />
@@ -292,10 +219,6 @@ const createStyles = (isDarkMode: boolean) => StyleSheet.create({
     borderWidth: 1,
     borderColor: isDarkMode ? '#27272a' : '#f4f4f5',
   },
-  insightCard: {
-    backgroundColor: isDarkMode ? '#0c0a09' : '#ffffff',
-    borderColor: isDarkMode ? '#27272a' : '#e2e8f0',
-  },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -326,65 +249,6 @@ const createStyles = (isDarkMode: boolean) => StyleSheet.create({
     fontWeight: '700',
     color: isDarkMode ? '#fff' : '#000',
     fontFamily: Platform.OS === 'web' ? 'monospace' : 'System',
-  },
-  insightHeading: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: '#ef4444',
-    marginBottom: 8,
-  },
-  insightText: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: isDarkMode ? '#d4d4d8' : '#4b5563',
-  },
-  sourcesContainer: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: isDarkMode ? '#27272a' : '#f4f4f5',
-  },
-  sourcesLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#71717a',
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  sourceItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 6,
-  },
-  sourceText: {
-    fontSize: 13,
-    color: '#3b82f6',
-    textDecorationLine: 'underline',
-  },
-  emptyInsight: {
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
-  loadingText: {
-    fontSize: 13,
-    color: '#71717a',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  refreshButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: isDarkMode ? '#27272a' : '#f4f4f5',
-  },
-  refreshButtonText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#71717a',
   },
   actionBar: {
     position: 'absolute',

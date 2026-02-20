@@ -1,6 +1,6 @@
 {
   "name": "Horizon Compass Pro",
-  "description": "Professional-grade cross-platform compass built with Expo and Gemini AI.",
+  "description": "Professional-grade cross-platform compass built with Expo.",
   "requestFramePermissions": [
     "geolocation",
     "camera"
