@@ -18,6 +18,7 @@ import {
   Sun, 
   Moon
 } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 import { Theme } from './types';
 import { useCompass } from './hooks/useCompass';
 import CompassDisc from './components/CompassDisc';
@@ -28,9 +29,45 @@ const App: React.FC = () => {
   const isLandscape = width > height;
   const [theme, setTheme] = useState<Theme>(Theme.DARK);
   const { orientation, location, error, requestPermissions, permissionGranted } = useCompass();
+  const [lastHapticHeading, setLastHapticHeading] = useState<number | null>(null);
 
   const isDarkMode = theme === Theme.DARK;
   const styles = createStyles(isDarkMode);
+
+  useEffect(() => {
+    if (!permissionGranted) return;
+
+    const heading = orientation.heading;
+    
+    // Check if heading is close to cardinal (0, 90, 180, 270) or ordinal (45, 135, 225, 315)
+    // Give a 2 degree threshold
+    const isCardinal = heading % 90 <= 2 || heading % 90 >= 88;
+    const isOrdinal = heading % 45 <= 2 || heading % 45 >= 43;
+
+    if (isCardinal || isOrdinal) {
+      // Determine which point we are near
+      let point = Math.round(heading / 45) * 45;
+      if (point === 360) point = 0;
+
+      if (lastHapticHeading !== point) {
+        if (point % 90 === 0) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        } else {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
+        setLastHapticHeading(point);
+      }
+    } else {
+      // Reset when we move away from the point
+      if (lastHapticHeading !== null) {
+        let diff = Math.abs(heading - lastHapticHeading);
+        if (diff > 180) diff = 360 - diff;
+        if (diff > 5) {
+          setLastHapticHeading(null);
+        }
+      }
+    }
+  }, [orientation.heading, permissionGranted, lastHapticHeading]);
 
   if (!permissionGranted) {
     return (
