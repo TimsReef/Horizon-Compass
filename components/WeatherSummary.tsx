@@ -136,9 +136,9 @@ const WeatherSummary: React.FC<WeatherSummaryProps> = ({ latitude, longitude, is
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 24,
-    padding: 20,
-    marginVertical: 10,
+    borderRadius: 20,
+    padding: 15,
+    marginVertical: 5,
     borderWidth: 1,
   },
   lightContainer: {
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     borderColor: '#27272a',
   },
   loadingContainer: {
-    height: 200,
+    height: 150,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   tempContainer: {
     flexDirection: 'row',
@@ -166,32 +166,32 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   tempText: {
-    fontSize: 48,
+    fontSize: 36,
     fontWeight: '900',
   },
   timeContainer: {
     alignItems: 'flex-end',
   },
   timeText: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
   },
   dateText: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#71717a',
     fontWeight: '600',
   },
   bottomSection: {
     borderTopWidth: 1,
     borderTopColor: 'rgba(113, 113, 122, 0.2)',
-    paddingTop: 15,
+    paddingTop: 10,
   },
   forecastTitle: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '800',
     color: '#71717a',
     letterSpacing: 1,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   forecastScroll: {
     gap: 20,

@@ -4,13 +4,13 @@ import {
   StyleSheet, 
   View, 
   Text, 
-  SafeAreaView, 
   TouchableOpacity, 
-  ScrollView, 
-  StatusBar,
   Platform,
   useWindowDimensions
 } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+import * as NavigationBar from 'expo-navigation-bar';
 import { 
   Compass, 
   Navigation, 
@@ -33,6 +33,13 @@ const App: React.FC = () => {
 
   const isDarkMode = theme === Theme.DARK;
   const styles = createStyles(isDarkMode);
+
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      NavigationBar.setVisibilityAsync("hidden");
+      NavigationBar.setBehaviorAsync("overlay-swipe");
+    }
+  }, []);
 
   useEffect(() => {
     if (!permissionGranted) return;
@@ -71,31 +78,35 @@ const App: React.FC = () => {
 
   if (!permissionGranted) {
     return (
-      <View style={[styles.fullScreen, styles.centerContent]}>
-        <View style={styles.iconCircle}>
-          <Compass size={64} color="#ef4444" />
+      <SafeAreaProvider>
+        <View style={[styles.fullScreen, styles.centerContent]}>
+          <StatusBar hidden />
+          <View style={styles.iconCircle}>
+            <Compass size={64} color="#ef4444" />
+          </View>
+          <Text style={styles.title}>Horizon Pro</Text>
+          <Text style={styles.subtitle}>Professional navigation for Expo. Please enable sensor and location access to start.</Text>
+          <TouchableOpacity 
+            style={styles.primaryButton} 
+            onPress={requestPermissions}
+            accessibilityLabel="Enable Sensors and Location"
+            accessibilityRole="button"
+          >
+            <Text style={styles.buttonText}>Enable Sensors</Text>
+          </TouchableOpacity>
+          {error && <Text style={styles.errorText}>{error}</Text>}
         </View>
-        <Text style={styles.title}>Horizon Pro</Text>
-        <Text style={styles.subtitle}>Professional navigation for Expo. Please enable sensor and location access to start.</Text>
-        <TouchableOpacity 
-          style={styles.primaryButton} 
-          onPress={requestPermissions}
-          accessibilityLabel="Enable Sensors and Location"
-          accessibilityRole="button"
-        >
-          <Text style={styles.buttonText}>Enable Sensors</Text>
-        </TouchableOpacity>
-        {error && <Text style={styles.errorText}>{error}</Text>}
-      </View>
+      </SafeAreaProvider>
     );
   }
 
   return (
-    <View style={styles.root}>
-      <SafeAreaView style={styles.fullScreen}>
-        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-        
-        <View style={styles.topBar}>
+    <SafeAreaProvider>
+      <View style={styles.root}>
+        <SafeAreaView style={styles.fullScreen}>
+          <StatusBar hidden />
+          
+          <View style={styles.topBar}>
           <View style={styles.logoGroup}>
             <View style={styles.logoBox}>
               <Navigation size={14} color="white" />
@@ -110,16 +121,8 @@ const App: React.FC = () => {
           >
             {isDarkMode ? <Sun size={20} color="#fbbf24" /> : <Moon size={20} color="#4f46e5" />}
           </TouchableOpacity>
-        </View>
+          </View>
 
-        <ScrollView 
-          contentContainerStyle={[
-            styles.scrollContent,
-            isLandscape && styles.landscapeScrollContent
-          ]} 
-          showsVerticalScrollIndicator={false}
-          style={styles.scrollView}
-        >
           <View style={[
             styles.mainContent,
             isLandscape && styles.landscapeMainContent
@@ -169,9 +172,9 @@ const App: React.FC = () => {
               </View>
             </View>
           </View>
-        </ScrollView>
-      </SafeAreaView>
-    </View>
+        </SafeAreaView>
+      </View>
+    </SafeAreaProvider>
   );
 };
 
@@ -188,23 +191,17 @@ const createStyles = (isDarkMode: boolean) => StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 30,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 150,
-  },
-  landscapeScrollContent: {
-    paddingBottom: 100,
+    backgroundColor: isDarkMode ? '#09090b' : '#ffffff',
   },
   mainContent: {
     flex: 1,
+    justifyContent: 'space-evenly',
   },
   landscapeMainContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
+    justifyContent: 'space-between',
   },
   topBar: {
     flexDirection: 'row',
@@ -239,15 +236,15 @@ const createStyles = (isDarkMode: boolean) => StyleSheet.create({
   },
   compassSection: {
     alignItems: 'center',
-    paddingVertical: 20,
+    justifyContent: 'center',
+    flex: 1,
   },
   landscapeCompassSection: {
     flex: 1,
-    paddingVertical: 0,
   },
   telemetryGrid: {
     flexDirection: 'row',
-    marginTop: 20,
+    marginTop: 10,
     gap: 12,
   },
   telemetryItem: {
@@ -271,25 +268,28 @@ const createStyles = (isDarkMode: boolean) => StyleSheet.create({
     color: isDarkMode ? '#fff' : '#000',
   },
   cardContainer: {
-    padding: 20,
-    gap: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+    gap: 10,
+    flex: 1,
+    justifyContent: 'center',
   },
   landscapeCardContainer: {
     flex: 1,
-    padding: 0,
+    padding: 10,
     justifyContent: 'center',
   },
   card: {
     backgroundColor: isDarkMode ? '#18181b' : '#ffffff',
-    padding: 24,
-    borderRadius: 24,
+    padding: 16,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: isDarkMode ? '#27272a' : '#f4f4f5',
   },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 10,
     gap: 10,
   },
   cardTitle: {

@@ -10,7 +10,7 @@ interface CompassDiscProps {
 
 const CompassDisc: React.FC<CompassDiscProps> = ({ heading, isDarkMode }) => {
   const { width, height } = useWindowDimensions();
-  const SIZE = Math.min(width * 0.85, height * 0.55);
+  const SIZE = Math.min(width * 0.85, height * 0.45);
 
   const strokeColor = isDarkMode ? '#e4e4e7' : '#18181b';
   const secondaryColor = isDarkMode ? '#3f3f46' : '#a1a1aa';
