@@ -6,7 +6,8 @@ import {
   Text, 
   TouchableOpacity, 
   Platform,
-  useWindowDimensions
+  useWindowDimensions,
+  AppState
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -35,10 +36,24 @@ const App: React.FC = () => {
   const styles = createStyles(isDarkMode);
 
   useEffect(() => {
-    if (Platform.OS === 'android') {
-      NavigationBar.setVisibilityAsync("hidden");
-      NavigationBar.setBehaviorAsync("overlay-swipe");
-    }
+    const hideNavBar = async () => {
+      if (Platform.OS === 'android') {
+        await NavigationBar.setPositionAsync('absolute');
+        await NavigationBar.setVisibilityAsync('hidden');
+      }
+    };
+
+    hideNavBar();
+
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        hideNavBar();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -79,7 +94,7 @@ const App: React.FC = () => {
   if (!permissionGranted) {
     return (
       <SafeAreaProvider>
-        <View style={[styles.fullScreen, styles.centerContent]}>
+        <SafeAreaView style={[styles.fullScreen, styles.centerContent]} edges={['top', 'left', 'right']}>
           <StatusBar hidden />
           <View style={styles.iconCircle}>
             <Compass size={64} color="#ef4444" />
@@ -95,7 +110,7 @@ const App: React.FC = () => {
             <Text style={styles.buttonText}>Enable Sensors</Text>
           </TouchableOpacity>
           {error && <Text style={styles.errorText}>{error}</Text>}
-        </View>
+        </SafeAreaView>
       </SafeAreaProvider>
     );
   }
@@ -103,7 +118,7 @@ const App: React.FC = () => {
   return (
     <SafeAreaProvider>
       <View style={styles.root}>
-        <SafeAreaView style={styles.fullScreen}>
+        <SafeAreaView style={styles.fullScreen} edges={['top', 'left', 'right']}>
           <StatusBar hidden />
           
           <View style={styles.topBar}>
@@ -149,11 +164,6 @@ const App: React.FC = () => {
               styles.cardContainer,
               isLandscape && styles.landscapeCardContainer
             ]}>
-              <WeatherSummary 
-                latitude={location.latitude} 
-                longitude={location.longitude} 
-                isDarkMode={isDarkMode} 
-              />
               <View style={styles.card}>
                 <View style={styles.cardHeader}>
                   <MapPin size={18} color="#3b82f6" />
@@ -170,6 +180,11 @@ const App: React.FC = () => {
                   </View>
                 </View>
               </View>
+              <WeatherSummary 
+                latitude={location.latitude} 
+                longitude={location.longitude} 
+                isDarkMode={isDarkMode} 
+              />
             </View>
           </View>
         </SafeAreaView>
