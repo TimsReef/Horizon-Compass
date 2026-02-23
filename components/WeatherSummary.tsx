@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Sun, Cloud, CloudRain, CloudLightning, CloudSnow, Wind, Thermometer } from 'lucide-react-native';
 
 interface WeatherSummaryProps {
@@ -27,6 +27,7 @@ const WeatherSummary: React.FC<WeatherSummaryProps> = ({ latitude, longitude, is
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isFahrenheit, setIsFahrenheit] = useState(true);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -86,6 +87,17 @@ const WeatherSummary: React.FC<WeatherSummaryProps> = ({ latitude, longitude, is
     return date.toLocaleDateString('en-US', { weekday: 'short' });
   };
 
+  const convertTemp = (celsius: number) => {
+    if (isFahrenheit) {
+      return (celsius * 9/5) + 32;
+    }
+    return celsius;
+  };
+
+  const toggleUnit = () => {
+    setIsFahrenheit(!isFahrenheit);
+  };
+
   if (loading && !weather) {
     return (
       <View style={styles.loadingContainer}>
@@ -98,12 +110,12 @@ const WeatherSummary: React.FC<WeatherSummaryProps> = ({ latitude, longitude, is
     <View style={[styles.container, isDarkMode ? styles.darkContainer : styles.lightContainer]}>
       {/* Top Section: Current Weather & Time */}
       <View style={styles.topSection}>
-        <View style={styles.tempContainer}>
+        <TouchableOpacity style={styles.tempContainer} onPress={toggleUnit} activeOpacity={0.7}>
           <Text style={[styles.tempText, isDarkMode ? styles.darkText : styles.lightText]}>
-            {weather?.current.temp.toFixed(1)}°
+            {weather ? convertTemp(weather.current.temp).toFixed(1) : '--'}°{isFahrenheit ? 'F' : 'C'}
           </Text>
           {weather && getWeatherIcon(weather.current.weatherCode, 48)}
-        </View>
+        </TouchableOpacity>
         <View style={styles.timeContainer}>
           <Text style={[styles.timeText, isDarkMode ? styles.darkText : styles.lightText]}>
             {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -123,8 +135,8 @@ const WeatherSummary: React.FC<WeatherSummaryProps> = ({ latitude, longitude, is
               <Text style={styles.dayName}>{index === 0 ? 'Today' : getDayName(day.date)}</Text>
               {getWeatherIcon(day.weatherCode, 20)}
               <View style={styles.forecastTemps}>
-                <Text style={[styles.maxTemp, isDarkMode ? styles.darkText : styles.lightText]}>{Math.round(day.maxTemp)}°</Text>
-                <Text style={styles.minTemp}>{Math.round(day.minTemp)}°</Text>
+                <Text style={[styles.maxTemp, isDarkMode ? styles.darkText : styles.lightText]}>{Math.round(convertTemp(day.maxTemp))}°</Text>
+                <Text style={styles.minTemp}>{Math.round(convertTemp(day.minTemp))}°</Text>
               </View>
             </View>
           ))}
