@@ -98,7 +98,7 @@ const App: React.FC = () => {
           <View style={styles.iconCircle}>
             <Compass size={64} color="#ef4444" />
           </View>
-          <Text style={styles.title}>Horizon Pro</Text>
+          <Text style={styles.title}>` Pro</Text>
           <Text style={styles.subtitle}>Professional navigation for Expo. Please enable sensor and location access to start.</Text>
           <TouchableOpacity 
             style={styles.primaryButton} 
@@ -125,7 +125,7 @@ const App: React.FC = () => {
             <View style={styles.logoBox}>
               <Navigation size={14} color="white" />
             </View>
-            <Text style={styles.logoText}>HORIZON</Text>
+            <Text style={styles.logoText}>HORIZON COMPASS</Text>
           </View>
           <TouchableOpacity 
             onPress={() => setTheme(t => t === Theme.DARK ? Theme.LIGHT : Theme.DARK)} 
