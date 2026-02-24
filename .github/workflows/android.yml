@@ -1,4 +1,4 @@
-name: Build Android APK (No EAS)
+name: Android APK Build (No EAS)
 on:
   # Specify when you want the build to run here
   push:
@@ -25,8 +25,8 @@ jobs:
           distribution: 'temurin'
           java-version: '17' # Required for modern Android/Expo builds
           
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      # - name: Setup Android SDK
+      #  uses: android-actions/setup-android@v3
 
       - name: Install Dependencies
         run: npm install
