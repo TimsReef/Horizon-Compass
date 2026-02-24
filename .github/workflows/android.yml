@@ -1,5 +1,4 @@
-name: Android App APK Build
-
+name: Build Android APK (No EAS)
 on:
   # Specify when you want the build to run here
   push:
@@ -11,39 +10,37 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup repo
-        uses: actions/checkout@v4
-      
-      - name: Setup node
-        uses: actions/setup-node@v4.0.2
+      - name: Checkout Repository
+        uses: [actions/checkout](https://github.com)@v4
+
+      - name: Setup Node.js
+        uses: [actions/setup-node](https://github.com)@v4
         with:
-          node-version: 25.x
+          node-version: '25'
           cache: 'npm'
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - name: Setup Java
+        uses: [actions/setup-java](https://github.com)@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          distribution: 'zulu'
+          java-version: '17' # Required for modern Android/Expo builds
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Install Dependencies
+        run: npm install
 
-      - name: Setup Expo
-        uses: expo/expo-github-action@v8
-        with:
-          # expo-version: latest
-          eas-version: latest
-          # token: ${{ secrets.EXPO_TOKEN }}
+      - name: Prebuild Android
+        # Generates the /android directory without using EAS
+        run: npx expo prebuild --platform android --no-install
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Build Release APK
+        # Runs the native Gradle build command
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease --stacktrace
 
-      - name: Build Android app
-        run: eas build --platform android --profile preview --local --output ${{ github.workspace }}/app-release.apk
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload APK Artifact
+        uses: [actions/upload-artifact](https://github.com)@v4
         with:
           name: app-release
-          path: ${{ github.workspace }}/app-release.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
