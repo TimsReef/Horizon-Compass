@@ -40,7 +40,7 @@ jobs:
           ./gradlew assembleRelease --stacktrace
 
       - name: Upload APK Artifact
-        uses: [actions/upload-artifact](https://github.com)@v4
+        uses: actions/upload-artifact@v4
         with:
           name: app-release
           path: android/app/build/outputs/apk/release/app-release.apk
