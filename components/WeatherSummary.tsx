@@ -189,7 +189,8 @@ const WeatherSummary: React.FC<WeatherSummaryProps> = ({ latitude, longitude, is
 const styles = StyleSheet.create({
   container: {
     borderRadius: 20,
-    padding: 15,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
     marginVertical: 5,
     borderWidth: 1,
   },
@@ -210,7 +211,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 12,
+    marginBottom: 4,
   },
   locationText: {
     fontSize: 12,
@@ -223,7 +224,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 6,
   },
   tempContainer: {
     flexDirection: 'row',
@@ -249,7 +250,7 @@ const styles = StyleSheet.create({
   bottomSection: {
     borderTopWidth: 1,
     borderTopColor: 'rgba(113, 113, 122, 0.2)',
-    paddingTop: 10,
+    paddingTop: 6,
   },
   forecastScroll: {
     gap: 20,
