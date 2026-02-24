@@ -253,8 +253,6 @@ const createStyles = (isDarkMode: boolean) => StyleSheet.create({
   },
   compassSection: {
     alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
     paddingVertical: 10,
   },
   landscapeCompassSection: {
@@ -300,8 +298,6 @@ const createStyles = (isDarkMode: boolean) => StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 10,
     gap: 10,
-    flex: 1,
-    justifyContent: 'center',
   },
   landscapeCardContainer: {
     flex: 1,

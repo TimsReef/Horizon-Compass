@@ -169,7 +169,6 @@ const WeatherSummary: React.FC<WeatherSummaryProps> = ({ latitude, longitude, is
 
       {/* Bottom Section: 7-Day Forecast */}
       <View style={styles.bottomSection}>
-        <Text style={styles.forecastTitle}>7-DAY FORECAST</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.forecastScroll}>
           {weather?.daily.map((day, index) => (
             <View key={index} style={styles.forecastItem}>
@@ -251,13 +250,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: 'rgba(113, 113, 122, 0.2)',
     paddingTop: 10,
-  },
-  forecastTitle: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: '#71717a',
-    letterSpacing: 1,
-    marginBottom: 8,
   },
   forecastScroll: {
     gap: 20,
