@@ -147,7 +147,10 @@ const App: React.FC = () => {
             ]}>
               <CompassDisc heading={orientation.heading} isDarkMode={isDarkMode} />
               
-              <View style={styles.telemetryGrid}>
+              <View style={[
+                styles.telemetryGrid,
+                isLandscape && styles.landscapeTelemetryGrid
+              ]}>
                 <View style={styles.telemetryItem}>
                   <Text style={styles.telemetryLabel}>Pitch</Text>
                   <Text style={styles.telemetryValue}>{orientation.pitch}°</Text>
@@ -255,14 +258,23 @@ const createStyles = (isDarkMode: boolean) => StyleSheet.create({
     paddingVertical: 10,
   },
   landscapeCompassSection: {
-    flex: 1,
+    flex: 1.2,
     paddingVertical: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   telemetryGrid: {
     flexDirection: 'row',
     marginTop: 10,
     marginBottom: 10,
     gap: 12,
+  },
+  landscapeTelemetryGrid: {
+    flexDirection: 'column',
+    marginTop: 0,
+    marginBottom: 0,
+    marginLeft: 15,
   },
   telemetryItem: {
     paddingHorizontal: 20,
