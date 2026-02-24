@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { Sun, Cloud, CloudRain, CloudLightning, CloudSnow, Wind, Thermometer } from 'lucide-react-native';
+import { Sun, Cloud, CloudRain, CloudLightning, CloudSnow, Wind, Thermometer, MapPin } from 'lucide-react-native';
+import * as Location from 'expo-location';
 
 interface WeatherSummaryProps {
   latitude: number | null;
@@ -10,6 +11,7 @@ interface WeatherSummaryProps {
 }
 
 interface WeatherData {
+  timezone: string;
   current: {
     temp: number;
     time: string;
@@ -25,6 +27,7 @@ interface WeatherData {
 
 const WeatherSummary: React.FC<WeatherSummaryProps> = ({ latitude, longitude, isDarkMode }) => {
   const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [locationName, setLocationName] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isFahrenheit, setIsFahrenheit] = useState(true);
@@ -50,6 +53,7 @@ const WeatherSummary: React.FC<WeatherSummaryProps> = ({ latitude, longitude, is
       const data = await response.json();
 
       const formattedData: WeatherData = {
+        timezone: data.timezone,
         current: {
           temp: data.current.temperature_2m,
           time: data.current.time,
@@ -63,6 +67,19 @@ const WeatherSummary: React.FC<WeatherSummaryProps> = ({ latitude, longitude, is
         })),
       };
       setWeather(formattedData);
+
+      try {
+        if (latitude !== null && longitude !== null) {
+          const geocode = await Location.reverseGeocodeAsync({ latitude, longitude });
+          if (geocode && geocode.length > 0) {
+            const place = geocode[0];
+            const name = place.city || place.region || place.country || 'Unknown Location';
+            setLocationName(name);
+          }
+        }
+      } catch (e) {
+        console.error('Error fetching location name:', e);
+      }
     } catch (error) {
       console.error('Error fetching weather:', error);
     } finally {
@@ -98,6 +115,22 @@ const WeatherSummary: React.FC<WeatherSummaryProps> = ({ latitude, longitude, is
     setIsFahrenheit(!isFahrenheit);
   };
 
+  const formatTime = (date: Date, timeZone?: string) => {
+    try {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone });
+    } catch (e) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+  };
+
+  const formatDate = (date: Date, timeZone?: string) => {
+    try {
+      return date.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', timeZone });
+    } catch (e) {
+      return date.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+    }
+  };
+
   if (loading && !weather) {
     return (
       <View style={styles.loadingContainer}>
@@ -108,6 +141,14 @@ const WeatherSummary: React.FC<WeatherSummaryProps> = ({ latitude, longitude, is
 
   return (
     <View style={[styles.container, isDarkMode ? styles.darkContainer : styles.lightContainer]}>
+      {/* Location Header */}
+      {locationName ? (
+        <View style={styles.locationHeader}>
+          <MapPin size={14} color="#71717a" />
+          <Text style={styles.locationText}>{locationName}</Text>
+        </View>
+      ) : null}
+
       {/* Top Section: Current Weather & Time */}
       <View style={styles.topSection}>
         <TouchableOpacity style={styles.tempContainer} onPress={toggleUnit} activeOpacity={0.7}>
@@ -118,10 +159,10 @@ const WeatherSummary: React.FC<WeatherSummaryProps> = ({ latitude, longitude, is
         </TouchableOpacity>
         <View style={styles.timeContainer}>
           <Text style={[styles.timeText, isDarkMode ? styles.darkText : styles.lightText]}>
-            {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {formatTime(currentTime, weather?.timezone)}
           </Text>
           <Text style={styles.dateText}>
-            {currentTime.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}
+            {formatDate(currentTime, weather?.timezone)}
           </Text>
         </View>
       </View>
@@ -165,6 +206,19 @@ const styles = StyleSheet.create({
     height: 150,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  locationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 12,
+  },
+  locationText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#71717a',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   topSection: {
     flexDirection: 'row',
