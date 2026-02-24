@@ -17,9 +17,11 @@ import {
   Navigation, 
   MapPin, 
   Sun, 
-  Moon
+  Moon,
+  Monitor
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
+import * as Brightness from 'expo-brightness';
 import { Theme } from './types';
 import { useCompass } from './hooks/useCompass';
 import CompassDisc from './components/CompassDisc';
@@ -29,6 +31,7 @@ const App: React.FC = () => {
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
   const [theme, setTheme] = useState<Theme>(Theme.DARK);
+  const [brightnessMode, setBrightnessMode] = useState<'system' | 'max' | 'dim'>('system');
   const { orientation, location, error, requestPermissions, permissionGranted } = useCompass();
   const [lastHapticHeading, setLastHapticHeading] = useState<number | null>(null);
 
@@ -43,6 +46,14 @@ const App: React.FC = () => {
     };
 
     hideNavBar();
+
+    const requestBrightness = async () => {
+      const { status } = await Brightness.requestPermissionsAsync();
+      if (status === 'granted') {
+        Brightness.useSystemBrightnessAsync();
+      }
+    };
+    requestBrightness();
 
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (nextAppState === 'active') {
@@ -90,6 +101,25 @@ const App: React.FC = () => {
     }
   }, [orientation.heading, permissionGranted, lastHapticHeading]);
 
+  const toggleBrightness = async () => {
+    const { status } = await Brightness.getPermissionsAsync();
+    if (status !== 'granted') {
+      const { status: newStatus } = await Brightness.requestPermissionsAsync();
+      if (newStatus !== 'granted') return;
+    }
+
+    if (brightnessMode === 'system') {
+      await Brightness.setBrightnessAsync(1);
+      setBrightnessMode('max');
+    } else if (brightnessMode === 'max') {
+      await Brightness.setBrightnessAsync(0.1);
+      setBrightnessMode('dim');
+    } else {
+      await Brightness.useSystemBrightnessAsync();
+      setBrightnessMode('system');
+    }
+  };
+
   if (!permissionGranted) {
     return (
       <SafeAreaProvider>
@@ -127,14 +157,24 @@ const App: React.FC = () => {
             </View>
             <Text style={styles.logoText}>HORIZON</Text>
           </View>
-          <TouchableOpacity 
-            onPress={() => setTheme(t => t === Theme.DARK ? Theme.LIGHT : Theme.DARK)} 
-            style={styles.themeToggle}
-            accessibilityLabel="Toggle Theme"
-            accessibilityRole="button"
-          >
-            {isDarkMode ? <Sun size={20} color="#fbbf24" /> : <Moon size={20} color="#4f46e5" />}
-          </TouchableOpacity>
+          <View style={styles.topActions}>
+            <TouchableOpacity 
+              onPress={toggleBrightness} 
+              style={styles.actionButton}
+              accessibilityLabel="Toggle Brightness"
+              accessibilityRole="button"
+            >
+              <Monitor size={20} color={brightnessMode === 'system' ? '#71717a' : (brightnessMode === 'max' ? '#fbbf24' : '#60a5fa')} />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              onPress={() => setTheme(t => t === Theme.DARK ? Theme.LIGHT : Theme.DARK)} 
+              style={styles.actionButton}
+              accessibilityLabel="Toggle Theme"
+              accessibilityRole="button"
+            >
+              {isDarkMode ? <Sun size={20} color="#fbbf24" /> : <Moon size={20} color="#4f46e5" />}
+            </TouchableOpacity>
+          </View>
           </View>
 
           <View style={[
@@ -246,7 +286,11 @@ const createStyles = (isDarkMode: boolean) => StyleSheet.create({
     color: isDarkMode ? '#fff' : '#000',
     letterSpacing: -0.5,
   },
-  themeToggle: {
+  topActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  actionButton: {
     padding: 8,
     borderRadius: 12,
     backgroundColor: isDarkMode ? '#18181b' : '#f4f4f5',
