@@ -38,7 +38,6 @@ const App: React.FC = () => {
   useEffect(() => {
     const hideNavBar = async () => {
       if (Platform.OS === 'android') {
-        await NavigationBar.setPositionAsync('absolute');
         await NavigationBar.setVisibilityAsync('hidden');
       }
     };
@@ -253,13 +252,16 @@ const createStyles = (isDarkMode: boolean) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
+    paddingVertical: 10,
   },
   landscapeCompassSection: {
     flex: 1,
+    paddingVertical: 0,
   },
   telemetryGrid: {
     flexDirection: 'row',
     marginTop: 10,
+    marginBottom: 10,
     gap: 12,
   },
   telemetryItem: {
