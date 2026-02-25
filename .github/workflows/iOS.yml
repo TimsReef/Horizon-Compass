@@ -1,4 +1,4 @@
-name: Build iOS IPA (No EAS)
+name: iOS IPA Build (No EAS)
 on:
   # Specify when you want the build to run here
   push:
@@ -34,11 +34,14 @@ jobs:
       - name: Build and Archive
         run: |
           xcodebuild -workspace ios/*.xcworkspace \
-            -scheme Horizon Compass Pro \
+            -scheme 'Horizon Compass Pro' \
             -configuration Release \
             -archivePath ios/build/App.xcarchive \
             archive \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_ENTITLEMENTS="" \
+            CODE_SIGNING_IDENTITY=""
 
       - name: Create Unsigned IPA
         # IPA is just a zipped .app folder in a Payload directory
