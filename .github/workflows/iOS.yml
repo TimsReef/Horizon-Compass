@@ -51,31 +51,42 @@ jobs:
           xcodebuild -workspace "$WORKSPACE_PATH" \
             -scheme "$SCHEME_NAME" \
             -configuration Release \
-            -archivePath ios/build/project.xcarchive \
+            -archivePath ios/build/App.xcarchive \
             archive \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_ENTITLEMENTS="" \
             CODE_SIGNING_IDENTITY=""
 
-      - name: Create Unsigned IPA
+      - name: Create and Rename Unsigned IPA
         run: |
-          # 1. Create the Payload directory (required for IPA structure)
+          # 1. Extract app name and version from app.json
+          # We use 'tr' to remove spaces and special characters for a clean filename
+          APP_NAME=$(jq -r '.expo.name' app.json | tr -dc '[:alnum:]\n\r')
+          VERSION=$(jq -r '.expo.version' app.json)
+          FILENAME="${APP_NAME}-v${VERSION}.ipa"
+          
+          echo "Target Filename: $FILENAME"
+
+          # 2. Package the IPA
           mkdir -p Payload
-          
-          # 2. Find the .app folder inside the archive using a wildcard path
-          # This handles both 'project.xcarchive' and 'App.xcarchive'
           APP_PATH=$(ls -d ios/build/*.xcarchive/Products/Applications/*.app | head -n 1)
-          echo "Found .app at: $APP_PATH"
-          
-          # 3. Copy the .app folder into the Payload directory
           cp -r "$APP_PATH" Payload/
+          zip -r "$FILENAME" Payload
           
-          # 4. Zip the Payload directory into the IPA file
-          zip -r app-release.ipa Payload
-          
-          # 5. Clean up
-          rm -rf Payload          
+          # 3. Store the filename for the next step
+          echo "IPA_FILENAME=$FILENAME" >> $GITHUB_ENV
+          rm -rf Payload
+
+      - name: Upload Renamed IPA to Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          # Use the environment variable we just created
+          files: ${{ env.IPA_FILENAME }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload IPA to Release
         uses: softprops/action-gh-release@v2
