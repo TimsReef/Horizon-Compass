@@ -59,12 +59,23 @@ jobs:
             CODE_SIGNING_IDENTITY=""
 
       - name: Create Unsigned IPA
-        # IPA is just a zipped .app folder in a Payload directory
         run: |
+          # 1. Create the Payload directory (required for IPA structure)
           mkdir -p Payload
-          cp -r ios/build/project.xcarchive/Products/Applications/*.app Payload/
+          
+          # 2. Find the .app folder inside the archive using a wildcard path
+          # This handles both 'project.xcarchive' and 'App.xcarchive'
+          APP_PATH=$(ls -d ios/build/*.xcarchive/Products/Applications/*.app | head -n 1)
+          echo "Found .app at: $APP_PATH"
+          
+          # 3. Copy the .app folder into the Payload directory
+          cp -r "$APP_PATH" Payload/
+          
+          # 4. Zip the Payload directory into the IPA file
           zip -r app-release.ipa Payload
-          rm -rf Payload
+          
+          # 5. Clean up
+          rm -rf Payload          
 
       - name: Upload IPA to Release
         uses: softprops/action-gh-release@v2
