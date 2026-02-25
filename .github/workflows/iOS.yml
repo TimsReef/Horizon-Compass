@@ -48,9 +48,9 @@ jobs:
           echo "Detected Scheme: $SCHEME_NAME"
         
           xcodebuild -workspace ios/*.xcworkspace \
-            -scheme "$SCHEME_NAME" \
+            -scheme "$SLUG_NAME" \
             -configuration Release \
-            -archivePath ios/build/App.xcarchive \
+            -archivePath ios/build/project.xcarchive \
             archive \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
@@ -61,7 +61,7 @@ jobs:
         # IPA is just a zipped .app folder in a Payload directory
         run: |
           mkdir -p Payload
-          cp -r ios/build/App.xcarchive/Products/Applications/*.app Payload/
+          cp -r ios/build/project.xcarchive/Products/Applications/*.app Payload/
           zip -r app-release.ipa Payload
           rm -rf Payload
 
