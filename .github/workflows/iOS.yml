@@ -9,6 +9,9 @@ on:
 jobs:
   build_ios:
     runs-on: macos-latest # Required for Xcode
+    permissions:
+      contents: write  # Required to create/update releases
+      packages: write    
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
