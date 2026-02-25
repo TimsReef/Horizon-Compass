@@ -38,8 +38,19 @@ jobs:
 
       - name: Build and Archive
         run: |
-          xcodebuild -workspace ios/*.xcworkspace \
-            -scheme "project" \
+          # 1. Find the workspace file (handles project.xcworkspace or HorizonCompassPro.xcworkspace)
+          WORKSPACE_PATH=$(ls ios/*.xcworkspace | head -n 1)
+          
+          # 2. Extract the first valid scheme name from that workspace
+          # This specifically looks for the line after "Schemes:"
+          SCHEME_NAME=$(xcodebuild -workspace "$WORKSPACE_PATH" -list | grep -A 1 "Schemes:" | tail -n 1 | xargs)
+          
+          echo "Using Workspace: $WORKSPACE_PATH"
+          echo "Using Detected Scheme: $SCHEME_NAME"
+      
+          # 3. Run the build with the detected names
+          xcodebuild -workspace "$WORKSPACE_PATH" \
+            -scheme "$SCHEME_NAME" \
             -configuration Release \
             -archivePath ios/build/project.xcarchive \
             archive \
