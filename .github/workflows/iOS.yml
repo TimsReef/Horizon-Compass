@@ -30,7 +30,6 @@ jobs:
         run: |
           npx expo prebuild --platform ios --no-install
           ls ios/*.xcodeproj
-          xcodebuild -workspace ios/*.xcworkspace -list       
 
       - name: Install CocoaPods
         run: |
