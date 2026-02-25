@@ -1,0 +1,59 @@
+name: Build iOS IPA (No EAS)
+on:
+  # Specify when you want the build to run here
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'release-*' # Matches tags starting with 'release-'
+
+jobs:
+  build_ios:
+    runs-on: macos-latest # Required for Xcode
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '25.x'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Prebuild iOS
+        # Generates the /ios directory
+        run: npx expo prebuild --platform ios --no-install
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install
+
+      - name: Build and Archive
+        run: |
+          xcodebuild -workspace ios/*.xcworkspace \
+            -scheme Horizon Compass Pro \
+            -configuration Release \
+            -archivePath ios/build/App.xcarchive \
+            archive \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Create Unsigned IPA
+        # IPA is just a zipped .app folder in a Payload directory
+        run: |
+          mkdir -p Payload
+          cp -r ios/build/App.xcarchive/Products/Applications/*.app Payload/
+          zip -r app-release.ipa Payload
+          rm -rf Payload
+
+      - name: Upload IPA to Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          name: ios-release
+          files: app-release.ipa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
