@@ -58,6 +58,14 @@ jobs:
             CODE_SIGN_ENTITLEMENTS="" \
             CODE_SIGNING_IDENTITY=""
 
+          # 4. DEBUG: List the entire archive structure to see where the .app went
+          echo "--- Archive Structure ---"
+          find ios/build/App.xcarchive -name "*.app" -type d || echo "No .app folders found in archive!"
+          
+          # 5. List the Products directory specifically
+          echo "--- Products Directory ---"
+          ls -R ios/build/App.xcarchive/Products || echo "Products directory is empty!"
+
       - name: Create and Rename Unsigned IPA
         run: |
           # 1. Extract app name and version
