@@ -50,17 +50,15 @@ jobs:
           echo "Detected Scheme: $SCHEME_NAME"
       
           # 3. Run the build
-          xcodebuild -workspace "$WORKSPACE_PATH" \
+          xcodebuild build -workspace "$WORKSPACE_PATH" \
             -scheme "$SCHEME_NAME" \
             -configuration Release \
-            -archivePath ios/build/App.xcarchive \
-            archive \
+            -sdk iphoneos \
+            -derivedDataPath ios/build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_ENTITLEMENTS="" \
-            CODE_SIGNING_IDENTITY="" \
-            INSTALL_PATH="/Applications" \
-            BUILD_LIBRARY_FOR_DISTRIBUTION=YES
+            CODE_SIGNING_IDENTITY=""
 
           # 4. DEBUG: List the entire archive structure to see where the .app went
           echo "--- Archive Structure ---"
@@ -78,14 +76,15 @@ jobs:
           FILENAME="${APP_NAME}-v${VERSION}.ipa"
           echo "Target Filename: $FILENAME"
 
-          # 2. Find the .app folder anywhere in the workspace
-          # Xcode 16 sometimes places build artifacts in derived data or custom paths
-          APP_PATH=$(find . -name "*.app" -type d -path "*/Release-iphoneos/*" | head -n 1)
+          # 2. Find the .app folder in the derived data path
+          APP_PATH=$(find ios/build -name "*.app" -type d | grep "Release-iphoneos" | head -n 1)
           
           if [ -z "$APP_PATH" ]; then
-            echo "❌ Error: Could not find the compiled .app file. The build may have failed."
+            echo "❌ Error: .app file not found in build directory."
+            find ios/build -maxdepth 4
             exit 1
           fi
+
           echo "Found .app at: $APP_PATH"
 
           # 3. Package into IPA structure
