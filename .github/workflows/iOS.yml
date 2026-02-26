@@ -40,22 +40,16 @@ jobs:
 
       - name: Build Unsigned App
         run: |
-          WORKSPACE_PATH=$(ls -d ios/*.xcworkspace | head -n 1)
+          # 1. We know the workspace and scheme from your log
+          WORKSPACE="ios/HorizonCompassPro.xcworkspace"
+          SCHEME="HorizonCompassPro"
           
-          # 1. Specifically look for the 'project' scheme or the one matching your slug
-          # If 'project' isn't found, it falls back to the first non-library scheme
-          SLUG=$(jq -r '.expo.slug' app.json)
-          SCHEME_NAME=$(xcodebuild -workspace "$WORKSPACE_PATH" -list | grep -E "project|$SLUG" | head -n 1 | xargs)
-          
-          # Fallback if the above fails
-          if [ -z "$SCHEME_NAME" ]; then
-            SCHEME_NAME=$(xcodebuild -workspace "$WORKSPACE_PATH" -list | grep -A 10 "Schemes:" | grep -v "Schemes:" | grep -v "Pods-" | grep -v "EX" | grep -v "React" | head -n 1 | xargs)
-          fi
-          
-          echo "Building Main App Scheme: $SCHEME_NAME"
+          echo "Building Main App Scheme: $SCHEME"
 
-          xcodebuild build -workspace "$WORKSPACE_PATH" \
-            -scheme "$SCHEME_NAME" \
+          # 2. Build the app using 'build' action
+          # We use -derivedDataPath to force the output into a predictable folder
+          xcodebuild build -workspace "$WORKSPACE" \
+            -scheme "$SCHEME" \
             -configuration Release \
             -sdk iphoneos \
             -derivedDataPath ios/build \
@@ -63,36 +57,35 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_ENTITLEMENTS="" \
             CODE_SIGNING_IDENTITY="" \
-            COMPILER_INDEX_STORE_ENABLE=NO
-
-          # 3. DEBUG: List the entire archive structure to see where the .app went
-          echo "--- Archive Structure ---"
-          find ios/build/App.xcarchive -name "*.app" -type d || echo "No .app folders found in archive!"
-          
-          # 4. List the Products directory specifically
-          echo "--- Products Directory ---"
-          ls -R ios/build/App.xcarchive/Products || echo "Products directory is empty!"
+            AD_HOC_CODE_SIGNING_ALLOWED=YES
 
       - name: Package Unsigned IPA
         run: |
+          # 1. Extract naming info from app.json
           APP_NAME=$(jq -r '.expo.name' app.json | tr -dc '[:alnum:]\n\r')
           VERSION=$(jq -r '.expo.version' app.json)
           FILENAME="${APP_NAME}-v${VERSION}.ipa"
 
-          # 2. Search deeper for the .app (it might be in a 'Build/Products' subfolder)
-          APP_PATH=$(find ios/build -name "*.app" -type d | grep "Release-iphoneos" | head -n 1)
+          # 2. Find the .app folder in the derived data path
+          # It will be inside Build/Products/Release-iphoneos/
+          APP_PATH=$(find ios/build/Build/Products/Release-iphoneos -name "*.app" -type d | head -n 1)
           
           if [ -z "$APP_PATH" ]; then
-            echo "❌ Still no .app found. Listing ALL schemes found in project:"
-            xcodebuild -workspace ios/*.xcworkspace -list
+            echo "❌ Error: .app file not found. Listing build directory for debug:"
+            find ios/build -maxdepth 5
             exit 1
           fi
 
           echo "Found .app at: $APP_PATH"
+
+          # 3. Create the mandatory Payload folder and zip it
           mkdir -p Payload
           cp -r "$APP_PATH" Payload/
           zip -r "$FILENAME" Payload
+          
+          # 4. Set environment variable for the Release upload step
           echo "IPA_FILENAME=$FILENAME" >> $GITHUB_ENV
+          echo "Successfully created $FILENAME"
 
       - name: Upload Renamed IPA to Release
         uses: softprops/action-gh-release@v2
