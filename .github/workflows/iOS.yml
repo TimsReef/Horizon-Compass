@@ -39,6 +39,8 @@ jobs:
           pod install
 
       - name: Build Unsigned App
+        id: xcode_build
+        continue-on-error: true      
         run: |
           # This reads the slug from app.json and uses it as the scheme
           # Note: You may need to adjust based on how Expo named your specific project
@@ -52,6 +54,9 @@ jobs:
           # 1. We know the workspace and scheme from your log
           WORKSPACE="ios/HorizonCompassPro.xcworkspace"
           SCHEME="HorizonCompassPro"
+
+          # Create a clean log file
+          touch xcodebuild.log
           
           echo "Building Main App Scheme: $SCHEME"
 
@@ -66,9 +71,20 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_ENTITLEMENTS="" \
             CODE_SIGNING_IDENTITY="" \
-            AD_HOC_CODE_SIGNING_ALLOWED=YES
+            AD_HOC_CODE_SIGNING_ALLOWED=YES | tee xcodebuild.log
 
-      - name: Package Unsigned IPA
+      - name: Prepare XCode iOS Build Logs
+        if: always()
+        run: |
+          APP_NAME=$(jq -r '.expo.name' app.json | tr -dc '[:alnum:]\n\r')
+          VERSION=$(jq -r '.expo.version' app.json)
+          LOG_FILENAME="${APP_NAME}-v${VERSION}-build-logs.txt"
+          
+          mv xcodebuild.log "$LOG_FILENAME"
+          echo "LOG_FILENAME=$LOG_FILENAME" >> $GITHUB_ENV
+
+      - name: Package Unsigned iOS IPA
+        if: steps.xcode_build.outcome == 'success'
         run: |
           # 1. Extract naming info from app.json
           APP_NAME=$(jq -r '.expo.name' app.json | tr -dc '[:alnum:]\n\r')
@@ -98,11 +114,13 @@ jobs:
 
       - name: Upload Renamed IPA to Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
+        if: always() && startsWith(github.ref, 'refs/tags/')
         with:
           # Use the environment variable we just created
-          files: ${{ env.IPA_FILENAME }}
+          files: |
+            ${{ env.IPA_FILENAME }}
+            ${{ env.LOG_FILENAME }}
           generate_release_notes: true
+          fail_on_unmatched_files: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}      
