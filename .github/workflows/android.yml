@@ -75,7 +75,7 @@ jobs:
           echo "ANDROID_APK=$NEW_FILENAME" >> $GITHUB_ENV
           echo "Created APK: $NEW_FILENAME"
 
-      - name: Upload APK to Release
+      - name: Upload to Release
         uses: softprops/action-gh-release@v2
         if: always() && startsWith(github.ref, 'refs/tags/')
         with:
