@@ -36,14 +36,28 @@ jobs:
         run: npx expo prebuild --platform android --no-install
 
       - name: Build Release APK
+        id: android_build
+        continue-on-error: true
         # Runs the native Gradle build command
         run: |
+          # Create a clean log file
+          touch android_build.log
+        
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease --stacktrace
-      
+          ./gradlew assembleRelease --stacktrace 2>&1 | tee ../android_build.log
+
+      - name: Prepare Android Logs
+        if: always()
+        run: |
+          VERSION=$(jq -r '.expo.version' app.json)
+          LOG_NAME="android-build-v${VERSION}-logs.txt"
+          mv android_build.log "$LOG_NAME"
+          echo "ANDROID_LOG=$LOG_NAME" >> $GITHUB_ENV
+          
       - name: Rename and Prepare APK
         id: rename_apk
+        if: steps.android_build.outcome == 'success'
         run: |
           # 1. Extract app name and version from app.json
           # tr -dc '[:alnum:]' removes spaces and special characters for a safe filename
@@ -58,15 +72,18 @@ jobs:
           mv "$ORIGINAL_APK" "$NEW_FILENAME"
           
           # 4. Save the filename to the environment for the next step
-          echo "APK_FILENAME=$NEW_FILENAME" >> $GITHUB_ENV
+          echo "ANDROID_APK=$NEW_FILENAME" >> $GITHUB_ENV
           echo "Created APK: $NEW_FILENAME"
 
       - name: Upload APK to Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
+        if: always() && startsWith(github.ref, 'refs/tags/')
         with:
           # Uses the environment variable from the previous step
-          files: ${{ env.APK_FILENAME }}
+          files: |
+            ${{ env.ANDROID_APK }}
+            ${{ env.ANDROID_LOG }}
           generate_release_notes: true
+          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
