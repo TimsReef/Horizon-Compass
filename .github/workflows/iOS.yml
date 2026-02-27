@@ -42,14 +42,18 @@ jobs:
         id: xcode_build
         continue-on-error: true      
         run: |
-          # This reads the slug from app.json and uses it as the scheme
-          # Note: You may need to adjust based on how Expo named your specific project
-          SLUG_NAME=$(cat app.json | jq -r '.expo.slug')
-          echo "Detected Slug: $SLUG_NAME"
-        
-          # This finds the first valid scheme automatically
-          SCHEME_NAME=$(xcodebuild -workspace ios/*.xcworkspace -list | grep -A 1 "Schemes:" | tail -n 1 | xargs)
-          echo "Detected Scheme: $SCHEME_NAME" 
+          # 1. Dynamically find the Workspace path (handles any name)
+          WORKSPACE_PATH=$(ls -d ios/*.xcworkspace | head -n 1)
+          
+          # 2. Dynamically find the Application Scheme
+          # This filters out common library schemes to find the 'main' app target
+          SCHEME_NAME=$(xcodebuild -workspace "$WORKSPACE_PATH" -list | \
+            grep -A 10 "Schemes:" | \
+            grep -vE "Schemes:|Pods-|EX|React|FBLazyVector|hermes|RCT" | \
+            head -n 1 | xargs)
+          
+          echo "Detected Workspace: $WORKSPACE_PATH"
+          echo "Detected Scheme: $SCHEME_NAME"
         
           # 1. We know the workspace and scheme from your log
           WORKSPACE="ios/HorizonCompassPro.xcworkspace"
@@ -78,10 +82,9 @@ jobs:
         run: |
           APP_NAME=$(jq -r '.expo.name' app.json | tr -dc '[:alnum:]\n\r')
           VERSION=$(jq -r '.expo.version' app.json)
-          LOG_FILENAME="${APP_NAME}-v${VERSION}-build-logs.txt"
-          
-          mv xcodebuild.log "$LOG_FILENAME"
-          echo "LOG_FILENAME=$LOG_FILENAME" >> $GITHUB_ENV
+          LOG_NAME="ios-build-v${VERSION}-logs.txt"
+          mv xcodebuild.log "$LOG_NAME"
+          echo "IOS_LOG=$LOG_NAME" >> $GITHUB_ENV
 
       - name: Package Unsigned iOS IPA
         if: steps.xcode_build.outcome == 'success'
@@ -109,17 +112,17 @@ jobs:
           zip -r "$FILENAME" Payload
           
           # 4. Set environment variable for the Release upload step
-          echo "IPA_FILENAME=$FILENAME" >> $GITHUB_ENV
+          echo "IOS_IPA=$FILENAME" >> $GITHUB_ENV
           echo "Successfully created $FILENAME"
 
-      - name: Upload Renamed IPA to Release
+      - name: Upload to Release
         uses: softprops/action-gh-release@v2
         if: always() && startsWith(github.ref, 'refs/tags/')
         with:
           # Use the environment variable we just created
           files: |
-            ${{ env.IPA_FILENAME }}
-            ${{ env.LOG_FILENAME }}
+            ${{ env.IOS_IPA }}
+            ${{ env.IOS_LOG }}
           generate_release_notes: true
           fail_on_unmatched_files: false
         env:
