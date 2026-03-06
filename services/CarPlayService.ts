@@ -1,4 +1,4 @@
-import { CarPlay, InformationTemplate } from '@iternio/react-native-auto-play';
+import { HybridAutoPlay, InformationTemplate } from '@iternio/react-native-auto-play';
 
 class CarPlayService {
   private template: InformationTemplate | null = null;
@@ -11,19 +11,23 @@ class CarPlayService {
       const onConnect = () => {
         this.connected = true;
         this.template = new InformationTemplate({
-          title: 'Horizon Pro',
+          title: { text: 'Horizon Pro' },
           items: [
-            { title: 'Heading', detail: '--°' },
-            { title: 'Pitch', detail: '--°' },
-            { title: 'Roll', detail: '--°' },
-            { title: 'Weather', detail: 'Loading...' }
+            { type: 'text', title: { text: 'Heading' }, detailedText: { text: '--°' } },
+            { type: 'text', title: { text: 'Pitch' }, detailedText: { text: '--°' } },
+            { type: 'text', title: { text: 'Roll' }, detailedText: { text: '--°' } },
+            { type: 'text', title: { text: 'Weather' }, detailedText: { text: 'Loading...' } }
           ],
-          actions: [{ id: 'refresh', title: 'Refresh' }],
-          onActionButtonPressed: (e) => {
-            console.log('Action pressed', e);
+          actions: {
+            ios: [
+              { type: 'text', title: { text: 'Refresh' }, onPress: () => console.log('Refresh') }
+            ],
+            android: [
+              { type: 'text', title: { text: 'Refresh' }, onPress: () => console.log('Refresh') }
+            ]
           }
         });
-        CarPlay.setRootTemplate(this.template);
+        this.template.setRootTemplate();
       };
 
       const onDisconnect = () => {
@@ -31,8 +35,8 @@ class CarPlayService {
         this.template = null;
       };
 
-      CarPlay.emitter.addListener('didConnect', onConnect);
-      CarPlay.emitter.addListener('didDisconnect', onDisconnect);
+      HybridAutoPlay.addListener('didConnect', onConnect);
+      HybridAutoPlay.addListener('didDisconnect', onDisconnect);
     } catch (e) {
       console.log('CarPlay/Android Auto not available in this environment');
     }
@@ -65,11 +69,11 @@ class CarPlayService {
     }
 
     try {
-      this.template.updateInformationTemplateItems([
-        { title: 'Heading', detail: `${Math.round(heading)}°` },
-        { title: 'Pitch', detail: `${Math.round(pitch)}°` },
-        { title: 'Roll', detail: `${Math.round(roll)}°` },
-        { title: 'Weather', detail: this.cachedWeather }
+      this.template.updateItems([
+        { type: 'text', title: { text: 'Heading' }, detailedText: { text: `${Math.round(heading)}°` } },
+        { type: 'text', title: { text: 'Pitch' }, detailedText: { text: `${Math.round(pitch)}°` } },
+        { type: 'text', title: { text: 'Roll' }, detailedText: { text: `${Math.round(roll)}°` } },
+        { type: 'text', title: { text: 'Weather' }, detailedText: { text: this.cachedWeather } }
       ]);
     } catch (e) {
       console.error('Failed to update CarPlay template', e);
