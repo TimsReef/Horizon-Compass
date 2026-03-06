@@ -46,7 +46,7 @@
     },
     "plugins": [
       "expo-dev-client",
-      "react-native-carplay"
+      "@iternio/react-native-auto-play"
     ]
   }
 }
