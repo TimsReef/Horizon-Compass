@@ -24,6 +24,7 @@ import { Theme } from './types';
 import { useCompass } from './hooks/useCompass';
 import CompassDisc from './components/CompassDisc';
 import WeatherSummary from './components/WeatherSummary';
+import { carPlayService } from './services/CarPlayService';
 
 const App: React.FC = () => {
   const { width, height } = useWindowDimensions();
@@ -36,6 +37,8 @@ const App: React.FC = () => {
   const styles = createStyles(isDarkMode);
 
   useEffect(() => {
+    carPlayService.init();
+
     const hideNavBar = async () => {
       if (Platform.OS === 'android') {
         await NavigationBar.setVisibilityAsync('hidden');
@@ -57,6 +60,14 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (!permissionGranted) return;
+
+    carPlayService.updateTelemetry(
+      orientation.heading,
+      orientation.pitch,
+      orientation.roll,
+      location.latitude,
+      location.longitude
+    );
 
     const heading = orientation.heading;
     
@@ -98,7 +109,7 @@ const App: React.FC = () => {
           <View style={styles.iconCircle}>
             <Compass size={64} color="#ef4444" />
           </View>
-          <Text style={styles.title}>` Pro</Text>
+          <Text style={styles.title}>Horizon Pro</Text>
           <Text style={styles.subtitle}>Professional navigation for Expo. Please enable sensor and location access to start.</Text>
           <TouchableOpacity 
             style={styles.primaryButton} 
@@ -125,7 +136,7 @@ const App: React.FC = () => {
             <View style={styles.logoBox}>
               <Navigation size={14} color="white" />
             </View>
-            <Text style={styles.logoText}>HORIZON COMPASS</Text>
+            <Text style={styles.logoText}>HORIZON</Text>
           </View>
           <TouchableOpacity 
             onPress={() => setTheme(t => t === Theme.DARK ? Theme.LIGHT : Theme.DARK)} 
