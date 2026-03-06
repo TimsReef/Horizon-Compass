@@ -1,4 +1,4 @@
-import { CarPlay, InformationTemplate } from 'react-native-carplay';
+import { CarPlay, InformationTemplate } from '@iternio/react-native-auto-play';
 
 class CarPlayService {
   private template: InformationTemplate | null = null;
