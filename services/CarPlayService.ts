@@ -20,13 +20,13 @@ class CarPlayService {
           ],
           actions: {
             ios: [
-              { type: 'text', title: { text: 'Refresh' }, onPress: () => console.log('Refresh') }
+              { type: 'text', title: 'Refresh', onPress: () => console.log('Refresh') }
             ],
             android: [
-              { type: 'text', title: { text: 'Refresh' }, onPress: () => console.log('Refresh') }
+              { type: 'text', title: 'Refresh', onPress: () => console.log('Refresh') }
             ]
           }
-        });
+        } as any);
         this.template.setRootTemplate();
       };
 
@@ -74,7 +74,7 @@ class CarPlayService {
         { type: 'text', title: { text: 'Pitch' }, detailedText: { text: `${Math.round(pitch)}°` } },
         { type: 'text', title: { text: 'Roll' }, detailedText: { text: `${Math.round(roll)}°` } },
         { type: 'text', title: { text: 'Weather' }, detailedText: { text: this.cachedWeather } }
-      ]);
+      ] as any);
     } catch (e) {
       console.error('Failed to update CarPlay template', e);
     }
