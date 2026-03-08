@@ -1,32 +1,39 @@
-import { HybridAutoPlay, InformationTemplate } from '@iternio/react-native-auto-play';
+import { HybridAutoPlay, MapTemplate } from '@iternio/react-native-auto-play';
+import CarDisplay from '../components/CarDisplay';
+
+export interface TelemetryData {
+  heading: number;
+  pitch: number;
+  roll: number;
+  latitude: number | null;
+  longitude: number | null;
+}
 
 class CarPlayService {
-  private template: InformationTemplate | null = null;
+  private template: MapTemplate | null = null;
   private connected: boolean = false;
-  private lastWeatherUpdate: number = 0;
-  private cachedWeather: string = 'Loading...';
+  private telemetry: TelemetryData = {
+    heading: 0,
+    pitch: 0,
+    roll: 0,
+    latitude: null,
+    longitude: null,
+  };
+  private listeners: ((data: TelemetryData) => void)[] = [];
 
   public init() {
     try {
       const onConnect = () => {
         this.connected = true;
-        this.template = new InformationTemplate({
-          title: { text: 'Horizon Pro' },
-          items: [
-            { type: 'text', title: { text: 'Heading' }, detailedText: { text: '--°' } },
-            { type: 'text', title: { text: 'Pitch' }, detailedText: { text: '--°' } },
-            { type: 'text', title: { text: 'Roll' }, detailedText: { text: '--°' } },
-            { type: 'text', title: { text: 'Weather' }, detailedText: { text: 'Loading...' } }
-          ],
-          actions: {
-            ios: [
-              { type: 'text', title: 'Refresh', onPress: () => console.log('Refresh') }
-            ],
+        this.template = new MapTemplate({
+          component: CarDisplay,
+          onStopNavigation: () => {},
+          mapButtons: {
             android: [
-              { type: 'text', title: 'Refresh', onPress: () => console.log('Refresh') }
+              { type: 'pan', image: { name: 'pan_tool', type: 'glyph' } }
             ]
           }
-        } as any);
+        });
         this.template.setRootTemplate();
       };
 
@@ -42,42 +49,20 @@ class CarPlayService {
     }
   }
 
-  public async updateTelemetry(heading: number, pitch: number, roll: number, latitude: number | null, longitude: number | null) {
-    if (!this.connected || !this.template) return;
+  public getTelemetry() {
+    return this.telemetry;
+  }
 
-    const now = Date.now();
-    if (latitude && longitude && (now - this.lastWeatherUpdate > 5 * 60 * 1000 || this.cachedWeather === 'Loading...')) {
-      this.lastWeatherUpdate = now;
-      try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code`;
-        const response = await fetch(url);
-        const data = await response.json();
-        const tempC = data.current.temperature_2m;
-        const tempF = Math.round((tempC * 9/5) + 32);
-        
-        let weatherDesc = 'Clear';
-        const code = data.current.weather_code;
-        if (code > 0 && code <= 3) weatherDesc = 'Cloudy';
-        if (code > 3 && code <= 67) weatherDesc = 'Rain';
-        if (code > 67 && code <= 77) weatherDesc = 'Snow';
-        if (code > 80) weatherDesc = 'Storm';
+  public subscribe(listener: (data: TelemetryData) => void) {
+    this.listeners.push(listener);
+    return () => {
+      this.listeners = this.listeners.filter(l => l !== listener);
+    };
+  }
 
-        this.cachedWeather = `${tempF}°F, ${weatherDesc}`;
-      } catch (e) {
-        console.error('Failed to fetch weather for CarPlay', e);
-      }
-    }
-
-    try {
-      this.template.updateItems([
-        { type: 'text', title: { text: 'Heading' }, detailedText: { text: `${Math.round(heading)}°` } },
-        { type: 'text', title: { text: 'Pitch' }, detailedText: { text: `${Math.round(pitch)}°` } },
-        { type: 'text', title: { text: 'Roll' }, detailedText: { text: `${Math.round(roll)}°` } },
-        { type: 'text', title: { text: 'Weather' }, detailedText: { text: this.cachedWeather } }
-      ] as any);
-    } catch (e) {
-      console.error('Failed to update CarPlay template', e);
-    }
+  public updateTelemetry(heading: number, pitch: number, roll: number, latitude: number | null, longitude: number | null) {
+    this.telemetry = { heading, pitch, roll, latitude, longitude };
+    this.listeners.forEach(listener => listener(this.telemetry));
   }
 }
 
