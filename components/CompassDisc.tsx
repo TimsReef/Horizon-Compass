@@ -6,10 +6,14 @@ import Svg, { Circle, Line, Text as SvgText, G } from 'react-native-svg';
 interface CompassDiscProps {
   heading: number;
   isDarkMode: boolean;
+  width?: number;
+  height?: number;
 }
 
-const CompassDisc: React.FC<CompassDiscProps> = ({ heading, isDarkMode }) => {
-  const { width, height } = useWindowDimensions();
+const CompassDisc: React.FC<CompassDiscProps> = ({ heading, isDarkMode, width: propWidth, height: propHeight }) => {
+  const windowDimensions = useWindowDimensions();
+  const width = propWidth || windowDimensions.width;
+  const height = propHeight || windowDimensions.height;
   const isLandscape = width > height;
   const SIZE = isLandscape ? Math.min(width * 0.4, height * 0.65) : Math.min(width * 0.85, height * 0.45);
 
