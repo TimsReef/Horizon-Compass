@@ -5,13 +5,7 @@
     "slug": "horizon-compass-pro",
     "version": "1.0.0",
     "orientation": "default",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#09090b"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -29,10 +23,6 @@
       }
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#09090b"
-      },
       "package": "com.horizon.compass",
       "permissions": [
         "ACCESS_COARSE_LOCATION",
@@ -41,12 +31,9 @@
         "android.permission.INTERNET"
       ]
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
+    "web": {},
     "plugins": [
-      "expo-dev-client",
-      "@iternio/react-native-auto-play"
+      "expo-dev-client"
     ]
   }
 }
