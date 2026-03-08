@@ -5,13 +5,7 @@
     "slug": "horizon-compass-pro",
     "version": "1.0.0",
     "orientation": "default",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#09090b"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -20,23 +14,26 @@
       "bundleIdentifier": "com.horizon.compass",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "This app needs access to location to provide heading insights.",
-        "NSMotionUsageDescription": "This app needs access to the magnetometer for compass functionality."
+        "NSLocationAlwaysUsageDescription": "This app needs access to location to provide heading insights while driving.",
+        "NSMotionUsageDescription": "This app needs access to the magnetometer for compass functionality.",
+        "UIBackgroundModes": [
+          "location",
+          "external-accessory"
+        ]
       }
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#09090b"
-      },
       "package": "com.horizon.compass",
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
         "android.permission.INTERNET"
       ]
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    }
+    "web": {},
+    "plugins": [
+      "expo-dev-client"
+    ]
   }
 }
