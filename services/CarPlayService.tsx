@@ -7,6 +7,7 @@ export interface TelemetryData {
   roll: number;
   latitude: number | null;
   longitude: number | null;
+  connected: boolean;
 }
 
 class CarPlayService {
@@ -18,6 +19,7 @@ class CarPlayService {
     roll: 0,
     latitude: null,
     longitude: null,
+    connected: false,
   };
   private listeners: ((data: TelemetryData) => void)[] = [];
 
@@ -25,6 +27,8 @@ class CarPlayService {
     try {
       const onConnect = () => {
         this.connected = true;
+        this.telemetry.connected = true;
+        this.notifyListeners();
         this.template = new MapTemplate({
           component: CarDisplay,
           onStopNavigation: () => {},
@@ -39,6 +43,8 @@ class CarPlayService {
 
       const onDisconnect = () => {
         this.connected = false;
+        this.telemetry.connected = false;
+        this.notifyListeners();
         this.template = null;
       };
 
@@ -60,9 +66,13 @@ class CarPlayService {
     };
   }
 
-  public updateTelemetry(heading: number, pitch: number, roll: number, latitude: number | null, longitude: number | null) {
-    this.telemetry = { heading, pitch, roll, latitude, longitude };
+  private notifyListeners() {
     this.listeners.forEach(listener => listener(this.telemetry));
+  }
+
+  public updateTelemetry(heading: number, pitch: number, roll: number, latitude: number | null, longitude: number | null) {
+    this.telemetry = { ...this.telemetry, heading, pitch, roll, latitude, longitude };
+    this.notifyListeners();
   }
 }
 
