@@ -17,7 +17,8 @@ import {
   Navigation, 
   MapPin, 
   Sun, 
-  Moon
+  Moon,
+  Car
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Theme } from './types';
@@ -32,9 +33,17 @@ const App: React.FC = () => {
   const [theme, setTheme] = useState<Theme>(Theme.DARK);
   const { orientation, location, error, requestPermissions, permissionGranted } = useCompass();
   const [lastHapticHeading, setLastHapticHeading] = useState<number | null>(null);
+  const [isAutoConnected, setIsAutoConnected] = useState(carPlayService.getTelemetry().connected);
 
   const isDarkMode = theme === Theme.DARK;
   const styles = createStyles(isDarkMode);
+
+  useEffect(() => {
+    const unsubscribe = carPlayService.subscribe((data) => {
+      setIsAutoConnected(data.connected);
+    });
+    return unsubscribe;
+  }, []);
 
   useEffect(() => {
     const hideNavBar = async () => {
@@ -130,20 +139,28 @@ const App: React.FC = () => {
           <StatusBar hidden />
           
           <View style={styles.topBar}>
-          <View style={styles.logoGroup}>
-            <View style={styles.logoBox}>
-              <Navigation size={14} color="white" />
+            <View style={styles.logoGroup}>
+              <View style={styles.logoBox}>
+                <Navigation size={14} color="white" />
+              </View>
+              <Text style={styles.logoText}>HORIZON</Text>
             </View>
-            <Text style={styles.logoText}>HORIZON</Text>
-          </View>
-          <TouchableOpacity 
-            onPress={() => setTheme(t => t === Theme.DARK ? Theme.LIGHT : Theme.DARK)} 
-            style={styles.themeToggle}
-            accessibilityLabel="Toggle Theme"
-            accessibilityRole="button"
-          >
-            {isDarkMode ? <Sun size={20} color="#fbbf24" /> : <Moon size={20} color="#4f46e5" />}
-          </TouchableOpacity>
+            <View style={styles.topBarActions}>
+              <View style={[styles.connectionBadge, isAutoConnected && styles.connectedBadge]}>
+                <Car size={18} color={isAutoConnected ? "#10b981" : "#71717a"} />
+                {isAutoConnected && (
+                  <Text style={styles.connectedText}>Auto</Text>
+                )}
+              </View>
+              <TouchableOpacity 
+                onPress={() => setTheme(t => t === Theme.DARK ? Theme.LIGHT : Theme.DARK)} 
+                style={styles.themeToggle}
+                accessibilityLabel="Toggle Theme"
+                accessibilityRole="button"
+              >
+                {isDarkMode ? <Sun size={20} color="#fbbf24" /> : <Moon size={20} color="#4f46e5" />}
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={[
@@ -254,6 +271,27 @@ const createStyles = (isDarkMode: boolean) => StyleSheet.create({
     fontSize: 22,
     color: isDarkMode ? '#fff' : '#000',
     letterSpacing: -0.5,
+  },
+  topBarActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  connectionBadge: {
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: isDarkMode ? '#18181b' : '#f4f4f5',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  connectedBadge: {
+    backgroundColor: isDarkMode ? 'rgba(16, 185, 129, 0.15)' : '#d1fae5',
+  },
+  connectedText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#10b981',
   },
   themeToggle: {
     padding: 8,
